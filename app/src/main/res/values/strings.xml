@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Upstox Holding</string>
+    <string name="current_value">Current Value:</string>
+    <string name="total_investment">Total Investment:</string>
+    <string name="today_profit">Today\'s Profit &amp; Loss:</string>
+    <string name="pnl">Profit &amp; Loss:</string>
+    <string name="no_data">No Data Available, check for network connection</string>
+</resources>
