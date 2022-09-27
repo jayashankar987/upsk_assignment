@@ -3,6 +3,8 @@ plugins {
   id 'org.jetbrains.kotlin.android'
   id 'dagger.hilt.android.plugin'
   id 'kotlin-kapt'
+  id 'myapp-lint'
+  id 'myapp-detekt'
 }
 
 android {
@@ -11,7 +13,7 @@ android {
   defaultConfig {
     applicationId "com.example.assignment"
     minSdk 23
-    targetSdk 32
+    targetSdk 33
     versionCode 1
     versionName "1.0"
 

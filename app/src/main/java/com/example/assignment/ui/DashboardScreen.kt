@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.assignment.R
 import com.example.assignment.R.string
 import com.example.repositories.holdings.network.HoldingResponse
 import com.example.repositories.utils.Extensions.roundOffDecimal
@@ -58,7 +57,8 @@ fun DashboardView(paddingValues: PaddingValues) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        SwipeRefresh(modifier = Modifier.fillMaxSize(),
+        SwipeRefresh(
+            modifier = Modifier.fillMaxSize(),
             state = swipeRefreshState,
             onRefresh = { dashboardViewModel.getHoldings() }) {
             if (errorState && state.isEmpty()) {
@@ -88,7 +88,7 @@ fun DashboardView(paddingValues: PaddingValues) {
                             }
 
                             items(state) { holdings: HoldingResponse.Data ->
-                                holdingsItem(holdings = holdings)
+                                HoldingsItem(holdings = holdings)
                             }
                         }
                     }
@@ -104,7 +104,7 @@ fun DashboardView(paddingValues: PaddingValues) {
 }
 
 @Composable
-fun holdingsItem(holdings: HoldingResponse.Data) {
+fun HoldingsItem(holdings: HoldingResponse.Data) {
 
     Card(shape = MaterialTheme.shapes.medium, modifier = Modifier.padding(16.dp)) {
         Box {
@@ -286,7 +286,7 @@ fun EmptyView() {
             .padding(start = 16.dp, top = 0.dp, bottom = 0.dp, end = 16.dp)
     ) {
         Text(
-            text = stringResource(id = R.string.no_data),
+            text = stringResource(id = string.no_data),
             modifier = Modifier
                 .fillMaxSize()
                 .align(Alignment.Center),
@@ -295,10 +295,3 @@ fun EmptyView() {
         )
     }
 }
-
-/*
-@Preview
-@Composable
-fun PreviewBottomView() {
-    BottomView()
-}*/
