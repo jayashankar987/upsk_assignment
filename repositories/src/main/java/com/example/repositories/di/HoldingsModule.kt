@@ -5,6 +5,7 @@ import com.example.repositories.holdings.network.HoldingsService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.internal.managers.ApplicationComponentManager
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -16,15 +17,10 @@ object HoldingsModule {
 
     @Singleton
     @Provides
-    fun providesRetrofit(): Retrofit.Builder = Retrofit.Builder()
-        .baseUrl(BuildConfig.BASE_URL)
-        .addConverterFactory(MoshiConverterFactory.create())
-
-
+    fun providesRetrofit(): Retrofit.Builder =
+        Retrofit.Builder().baseUrl(BuildConfig.BASE_URL).addConverterFactory(MoshiConverterFactory.create())
 
     @Singleton
     @Provides
-    fun providesHoldingsApi(builder: Retrofit.Builder): HoldingsService = builder
-        .build()
-        .create(HoldingsService::class.java)
+    fun providesHoldingsApi(builder: Retrofit.Builder): HoldingsService = builder.build().create(HoldingsService::class.java)
 }

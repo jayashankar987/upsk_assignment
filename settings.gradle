@@ -15,3 +15,5 @@ dependencyResolutionManagement {
 rootProject.name = "Assignment"
 include ':app'
 include ':repositories'
+
+includeBuild 'plugins'
