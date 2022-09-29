@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
@@ -39,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.assignment.R.string
-import com.example.repositories.holdings.network.HoldingResponse
 import com.example.repositories.utils.Extensions.roundOffDecimal
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -47,9 +45,8 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 @Composable
 fun DashboardView(paddingValues: PaddingValues) {
     val dashboardViewModel = viewModel(modelClass = DashboardViewModel::class.java)
-    val state by dashboardViewModel.state.collectAsState()
+    val state by dashboardViewModel.getHoldingsSize().collectAsState(0)
     val swipeRefreshState = rememberSwipeRefreshState(false)
-
     val errorState by dashboardViewModel.error.collectAsState()
 
     Column(
@@ -57,11 +54,10 @@ fun DashboardView(paddingValues: PaddingValues) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        SwipeRefresh(
-            modifier = Modifier.fillMaxSize(),
+        SwipeRefresh(modifier = Modifier.fillMaxSize(),
             state = swipeRefreshState,
-            onRefresh = { dashboardViewModel.getHoldings() }) {
-            if (errorState && state.isEmpty()) {
+            onRefresh = { dashboardViewModel.getHoldingsSize() }) {
+            if (errorState) {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     EmptyView()
                 }
@@ -77,7 +73,7 @@ fun DashboardView(paddingValues: PaddingValues) {
                     ) {
 
                         LazyColumn(contentPadding = paddingValues) {
-                            if (state.isEmpty()) {
+                            if (state == 0) {
                                 item {
                                     CircularProgressIndicator(
                                         modifier = Modifier
@@ -87,15 +83,15 @@ fun DashboardView(paddingValues: PaddingValues) {
                                 }
                             }
 
-                            items(state) { holdings: HoldingResponse.Data ->
-                                HoldingsItem(holdings = holdings)
+                            items(state) { index ->
+                                HoldingsItem(index, dashboardViewModel)
                             }
                         }
                     }
                     Spacer(modifier = Modifier.weight(1f))
 
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        BottomView(holdings = state)
+                        BottomView(dashboardViewModel)
                     }
                 }
             }
@@ -104,8 +100,9 @@ fun DashboardView(paddingValues: PaddingValues) {
 }
 
 @Composable
-fun HoldingsItem(holdings: HoldingResponse.Data) {
+fun HoldingsItem(index: Int, dashboardViewModel: DashboardViewModel) {
 
+    val data = dashboardViewModel.holdingsList.collectAsState().value[index]
     Card(shape = MaterialTheme.shapes.medium, modifier = Modifier.padding(16.dp)) {
         Box {
 
@@ -127,14 +124,14 @@ fun HoldingsItem(holdings: HoldingResponse.Data) {
                     ) {
                         Text(
                             modifier = Modifier.align(Alignment.TopStart),
-                            text = holdings.symbol,
+                            text = data.symbol,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
                             color = Color.Black
                         )
                         InTextBold(
                             modifier = Modifier.align(Alignment.TopEnd),
-                            text = "LTP: **${holdings.ltp.toFloat().roundOffDecimal()} **",
+                            text = "LTP: **${data.ltp.toFloat().roundOffDecimal()} **",
                             fontSize = 11.sp,
                             color = Color.Black
                         )
@@ -142,13 +139,13 @@ fun HoldingsItem(holdings: HoldingResponse.Data) {
                             modifier = Modifier
                                 .align(Alignment.BottomStart)
                                 .padding(start = 0.dp, top = 0.dp, bottom = 5.dp, end = 0.dp),
-                            text = "${holdings.quantity}",
+                            text = "${data.quantity}",
                             fontSize = 11.sp,
                             color = Color.Black
                         )
 
-                        val currentValue = holdings.ltp * holdings.quantity
-                        val investmentValue = holdings.avgPrice.toFloat() * holdings.quantity
+                        val currentValue = data.ltp * data.quantity
+                        val investmentValue = data.avgPrice.toFloat() * data.quantity
                         val pl = currentValue - investmentValue
                         InTextBold(
                             modifier = Modifier
@@ -231,30 +228,25 @@ fun TopBar() {
 }
 
 @Composable
-fun BottomView(holdings: List<HoldingResponse.Data>) {
-
-    val totalCurrentValue = holdings.sumOf { it.quantity * it.ltp }
-    val totalInvestment = holdings.sumOf { it.avgPrice.toDouble() * it.quantity }
-    val todayProfitLoss = holdings.sumOf { (it.close - it.ltp) * it.quantity }
-    val totalProfitLoss = totalCurrentValue - totalInvestment
-
-
-    Column(Modifier.background(Color.White)) {
-        AppText(
-            title = stringResource(id = string.current_value),
-            value = totalCurrentValue.toFloat().roundOffDecimal(),
-            height = 48.dp
-        )
-        AppText(
-            title = stringResource(id = string.total_investment),
-            value = totalInvestment.toFloat().roundOffDecimal(),
-            height = 48.dp
-        )
-        AppText(
-            title = stringResource(id = string.today_profit), value = todayProfitLoss.toFloat().roundOffDecimal(), height = 48.dp
-        )
-        AppText(title = stringResource(id = string.pnl), value = totalProfitLoss.toFloat().roundOffDecimal(), height = 60.dp)
+fun BottomView(viewModel: DashboardViewModel) {
+    val userHolding = viewModel.userHolding.collectAsState()
+    userHolding.value?.let {
+        Column(Modifier.background(Color.White)) {
+            AppText(
+                title = stringResource(id = string.current_value), value = it.totalCurrentValue.roundOffDecimal(), height = 48.dp
+            )
+            AppText(
+                title = stringResource(id = string.total_investment), value = it.totalInvestment.roundOffDecimal(), height = 48.dp
+            )
+            AppText(
+                title = stringResource(id = string.today_profit), value = it.todayProfitLoss.roundOffDecimal(), height = 48.dp
+            )
+            AppText(
+                title = stringResource(id = string.pnl), value = it.totalProfitLoss.roundOffDecimal(), height = 60.dp
+            )
+        }
     }
+
 }
 
 @Composable

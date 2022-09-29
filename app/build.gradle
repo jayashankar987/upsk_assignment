@@ -87,6 +87,7 @@ dependencies {
   implementation 'androidx.compose.runtime:runtime-rxjava2:1.2.1'
 
   implementation 'com.google.accompanist:accompanist-swiperefresh:0.26.3-beta'
+  implementation 'androidx.activity:activity-ktx:1.6.0'
 
 
 
